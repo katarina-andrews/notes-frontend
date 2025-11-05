@@ -1,40 +1,23 @@
 import { useState } from "react";
 import "./App.css";
 import { useAuth } from "react-oidc-context";
+import Notes from "./components/Notes";
 
 function App() {
+  const [notes, setNotes] = useState([]);
   const auth = useAuth();
 
-  const signOutRedirect = () => {
-    const clientId = "6hf3o5mihctsvtgljt4nakalma";
-    const logoutUri = "http://localhost:5173";
-    const cognitoDomain =
-      "https://us-east-2cgjh8qgpd.auth.us-east-2.amazoncognito.com";
-    window.location.href = `${cognitoDomain}/logout?client_id=${clientId}&logout_uri=${encodeURIComponent(
-      logoutUri
-    )}`;
-  };
-
-  const loading = () => {
-    if (auth.isLoading) {
-      return <div>Loading...</div>;
-    }
-  };
-
-  const error = () => {
+  const Error = () => {
     if (auth.error) {
       return <div>Encountering error... {auth.error.message}</div>;
     }
   };
 
-  const badge = () => {
+  const Badge = () => {
     if (auth.isAuthenticated) {
       return (
-        <div>
-          <pre> Hello: {auth.user?.profile.email} </pre>
-          <pre> ID Token: {auth.user?.id_token} </pre>
-          <pre> Access Token: {auth.user?.access_token} </pre>
-          <pre> Refresh Token: {auth.user?.refresh_token} </pre>
+        <div className="flex justify-between align-baseline">
+          <pre> Hello, {auth.user?.profile["cognito:username"]} </pre>
 
           <button onClick={() => auth.removeUser()}>Sign out</button>
         </div>
@@ -43,9 +26,30 @@ function App() {
   };
 
   return (
-    <div>
-      <button onClick={() => auth.signinRedirect()}>Sign in</button>
-    </div>
+    <>
+      <header className="mb-5 text-left h-48">
+        {!auth.isLoading ? (
+          <>
+            <h1 className="mb-5">Codex March Cohort 2025 Notes App</h1>
+
+            <Badge />
+            {!auth.isAuthenticated && (
+              <button onClick={() => auth.signinRedirect()}>Sign in</button>
+            )}
+            <Error />
+          </>
+        ) : (
+          <p className="text-center h-48">Loading...</p>
+        )}
+      </header>
+      <main>
+        <section>
+          <h2 className="h2 mb-3">Our notes</h2>
+          <Notes setNotes={setNotes} notes={notes} />
+        </section>
+      </main>
+      <footer></footer>
+    </>
   );
 }
 
